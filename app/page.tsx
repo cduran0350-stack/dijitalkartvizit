@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FaBolt, FaIdCard, FaWifi } from "react-icons/fa6";
+import Logo from "@/components/Logo";
 
 export default function Home() {
   return (
@@ -7,8 +8,8 @@ export default function Home() {
       {/* Üst bar */}
       <header className="sticky top-0 z-10 border-b border-violet-100/60 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3">
-          <Link href="/" className="flex items-center gap-2 font-bold text-zinc-900">
-            <FaWifi className="text-violet-700" /> Dijital Kartvizit
+          <Link href="/">
+            <Logo size={30} />
           </Link>
           <nav className="flex items-center gap-2">
             <Link

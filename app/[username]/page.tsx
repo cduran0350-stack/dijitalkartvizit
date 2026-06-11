@@ -24,12 +24,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // "Ayşe Nur Çevik (Dijital Kartvizit)"
   const shareTitle = `${profile.fullName} (Dijital Kartvizit)`;
 
-  // og:image mutlak URL olmalı (WhatsApp JS çalıştırmaz, ham HTML'i okur).
-  // Fotoğraf yoksa kapak görselini, o da yoksa hiçbirini kullanma.
-  const imageUrl = profile.photoURL || profile.coverURL;
-  const images = imageUrl
-    ? [{ url: imageUrl, width: 1200, height: 1200, alt: profile.fullName }]
-    : [];
+  // Profil fotoğrafı Firestore'da data URL olarak tutulduğu için doğrudan
+  // og:image yapılamaz (WhatsApp data URL'i çekemez). Bunun yerine fotoğrafı
+  // gerçek bir resim olarak servis eden /og/[username] uç noktasını gösteriyoruz.
+  // metadataBase ile mutlak adrese çözülür.
+  const ogImage = `/og/${encodeURIComponent(profile.username)}`;
 
   return {
     title: shareTitle,
@@ -41,13 +40,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: `/${profile.username}`,
       siteName: "Dijital Kartvizit",
       locale: "tr_TR",
-      images,
+      images: [{ url: ogImage, alt: profile.fullName }],
     },
     twitter: {
-      card: imageUrl ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title: shareTitle,
       description,
-      images: imageUrl ? [imageUrl] : [],
+      images: [ogImage],
     },
   };
 }
