@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
@@ -10,16 +9,7 @@ import Editor from "@/components/Editor";
 export default function AdminEditPage() {
   const { user, loading, configured } = useAuth();
   const params = useParams();
-  const raw = Array.isArray(params.uid) ? params.uid[0] : params.uid;
-
-  // "new" ise yeni bir kart kimliği üret (girişe bağlı olmayan, yönetici kartı)
-  const targetUid = useMemo(() => {
-    if (raw === "new") {
-      const rnd = Math.floor(performance.now() * 1000).toString(36);
-      return `card_${rnd}`;
-    }
-    return raw || "";
-  }, [raw]);
+  const targetUid = Array.isArray(params.uid) ? params.uid[0] : params.uid || "";
 
   if (!configured) return <Centered>Firebase bağlı değil.</Centered>;
   if (loading) return <Centered>Yükleniyor...</Centered>;

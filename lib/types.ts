@@ -64,5 +64,9 @@ export interface Profile {
   phone?: string;
   website?: string;
 
+  /** true ise kullanıcı giriş yapınca önce şifresini değiştirmek zorunda
+   * (yönetici tarafından 123456 varsayılan şifreyle oluşturulan hesaplar) */
+  mustChangePassword?: boolean;
+
   updatedAt?: number;
 }

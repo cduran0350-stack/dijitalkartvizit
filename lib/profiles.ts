@@ -94,3 +94,9 @@ export async function setProfilePublished(uid: string, published: boolean): Prom
   if (!isFirebaseConfigured || !db) return;
   await updateDoc(doc(db, COLLECTION, uid), { published });
 }
+
+/** Zorunlu şifre değiştirme bayrağını ayarla (ilk giriş sonrası kapatılır) */
+export async function setMustChangePassword(uid: string, value: boolean): Promise<void> {
+  if (!isFirebaseConfigured || !db) return;
+  await updateDoc(doc(db, COLLECTION, uid), { mustChangePassword: value });
+}
