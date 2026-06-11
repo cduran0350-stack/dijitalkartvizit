@@ -106,7 +106,15 @@ export default function AdminPage() {
       });
 
       if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        // Yanıtı önce metin olarak al; JSON ise ayrıştır (JSON değilse de görelim)
+        const raw = await res.text().catch(() => "");
+        let data: { error?: string; detail?: string } = {};
+        try {
+          data = JSON.parse(raw);
+        } catch {
+          /* JSON değil */
+        }
+
         if (data.error === "not-configured") {
           // Sunucu anahtarı tanımlı değil → en azından kartı istemci tarafında sil
           await deleteProfileByUid(p.uid);
@@ -116,8 +124,15 @@ export default function AdminPage() {
               "Aynı e-posta tekrar eklenemez. Vercel ortam değişkenlerini ekleyince düzelir."
           );
         } else {
-          throw new Error(data.error || "Silinemedi");
+          const detay =
+            data.error || data.detail
+              ? `${data.error || ""}${data.detail ? " — " + data.detail : ""}`
+              : raw.slice(0, 200) || "(boş yanıt)";
+          throw new Error(`HTTP ${res.status}: ${detay}`);
         }
+      } else {
+        setProfiles((list) => list.filter((x) => x.uid !== p.uid));
+        return;
       }
 
       setProfiles((list) => list.filter((x) => x.uid !== p.uid));
