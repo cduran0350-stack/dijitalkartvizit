@@ -462,6 +462,22 @@ export default function Editor({
                   placeholder={def.placeholder}
                   className="input mt-2"
                 />
+                {link.type === "iban" && (
+                  <input
+                    value={link.label || ""}
+                    onChange={(e) => updateLink(link.id, { label: e.target.value })}
+                    placeholder="Banka adı (ör. Ziraat Bankası)"
+                    className="input mt-2"
+                  />
+                )}
+                {link.type === "custom" && (
+                  <input
+                    value={link.label || ""}
+                    onChange={(e) => updateLink(link.id, { label: e.target.value })}
+                    placeholder="Bağlantı adı (ör. Menü, Katalog)"
+                    className="input mt-2"
+                  />
+                )}
               </div>
             );
           })}

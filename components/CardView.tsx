@@ -224,19 +224,24 @@ export default function CardView({ username }: { username: string }) {
             </button>
           </div>
 
-          {/* Platform bağlantıları — soft gri tonlu kutucuklar, sadece logolar */}
+          {/* Platform bağlantıları — soft gri tonlu kutucuklar, logo + altında ad */}
           <div className="mt-6 grid grid-cols-4 gap-3 min-[380px]:gap-4 sm:grid-cols-5">
             {profile.links.map((link) => {
               const def = PLATFORMS[link.type];
               if (!def || !link.value) return null;
               const Icon = def.icon;
-              const label = link.label || def.label;
+              const label = link.label?.trim() || def.label;
               const isCopyOnly = link.type === "iban";
 
               const cell = (
-                <span className="flex aspect-square w-full items-center justify-center rounded-2xl border border-zinc-200/70 bg-gradient-to-b from-white to-zinc-100 text-zinc-500 shadow-sm transition active:scale-95 active:text-zinc-700 hover:to-zinc-50 hover:text-zinc-700">
-                  <Icon className="text-[22px] min-[380px]:text-2xl sm:text-[26px]" />
-                </span>
+                <>
+                  <span className="flex aspect-square w-full items-center justify-center rounded-2xl border border-zinc-200/70 bg-gradient-to-b from-white to-zinc-100 text-zinc-500 shadow-sm transition active:scale-95 active:text-zinc-700 hover:to-zinc-50 hover:text-zinc-700">
+                    <Icon className="text-[22px] min-[380px]:text-2xl sm:text-[26px]" />
+                  </span>
+                  <span className="mt-1.5 block w-full truncate text-center text-[11px] font-medium leading-tight text-zinc-500">
+                    {label}
+                  </span>
+                </>
               );
 
               if (isCopyOnly) {
@@ -246,7 +251,7 @@ export default function CardView({ username }: { username: string }) {
                     onClick={() => copy(link.value, link.id)}
                     title={label}
                     aria-label={`${label} kopyala`}
-                    className="rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-zinc-400"
+                    className="flex flex-col rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-zinc-400"
                   >
                     {cell}
                   </button>
@@ -261,7 +266,7 @@ export default function CardView({ username }: { username: string }) {
                   rel="noopener noreferrer"
                   title={label}
                   aria-label={label}
-                  className="rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-zinc-400"
+                  className="flex flex-col rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-zinc-400"
                 >
                   {cell}
                 </a>
