@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Süper yönetici e-postaları (buraya ekleyebilirsin)
+    function isAdmin() {
+      return request.auth != null
+             && request.auth.token.email in [
+               'cduran0350@gmail.com'
+             ];
+    }
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // Profiller: herkes okuyabilir (kartlar açık); sahibi veya yönetici yazabilir
+    match /profiles/{uid} {
+      allow read: if true;
+      allow create, update, delete: if isOwner(uid) || isAdmin();
+
+      // İstatistik olayları (ziyaret / rehbere ekleme):
+      // ziyaretçiler kayıt ekleyebilir, sadece kart sahibi veya yönetici okuyabilir
+      match /{sub}/{docId} {
+        allow create: if sub == 'views' || sub == 'contacts';
+        allow read: if isOwner(uid) || isAdmin();
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Profil fotoğrafları: herkes görebilir, sadece sahibi kendi klasörüne yükler
+    match /photos/{uid}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null
+                   && request.auth.uid == uid
+                   && request.resource.size < 5 * 1024 * 1024  // max 5MB
+                   && request.resource.contentType.matches('image/.*');
+    }
+  }
+}
