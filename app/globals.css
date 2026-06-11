@@ -9,6 +9,96 @@ body {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
+/* ───────────────────────────────────────────────
+   Kartvizit arka planı — şık, dijital, animasyonlu
+   --card-theme: profilin tema rengi (inline atanır)
+   ─────────────────────────────────────────────── */
+.card-bg {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(1000px 700px at 12% -15%,
+      color-mix(in srgb, var(--card-theme, #6d28d9) 40%, transparent), transparent 60%),
+    radial-gradient(900px 600px at 95% 5%,
+      color-mix(in srgb, var(--card-theme, #6d28d9) 26%, #38bdf8 0%), transparent 58%),
+    radial-gradient(800px 800px at 50% 120%,
+      color-mix(in srgb, var(--card-theme, #6d28d9) 30%, transparent), transparent 55%),
+    linear-gradient(160deg, #0f172a 0%, #1e1b4b 45%, #111827 100%);
+}
+
+/* İnce ızgara dokusu — dijital his */
+.card-bg::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -2;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  -webkit-mask-image: radial-gradient(circle at 50% 30%, #000 0%, transparent 80%);
+          mask-image: radial-gradient(circle at 50% 30%, #000 0%, transparent 80%);
+}
+
+/* Yumuşak, süzülen ışık lekeleri */
+.card-bg__blobs {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+.card-bg__blobs span {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.7;
+  will-change: transform;
+}
+.card-bg__blobs span:nth-child(1) {
+  width: 460px; height: 460px; top: -120px; left: -120px;
+  background: color-mix(in srgb, var(--card-theme, #6d28d9) 55%, #ffffff);
+  animation: blobFloatA 18s ease-in-out infinite;
+}
+.card-bg__blobs span:nth-child(2) {
+  width: 380px; height: 380px; top: 10%; right: -140px;
+  background: color-mix(in srgb, var(--card-theme, #6d28d9) 35%, #38bdf8);
+  animation: blobFloatB 22s ease-in-out infinite;
+}
+.card-bg__blobs span:nth-child(3) {
+  width: 420px; height: 420px; bottom: -160px; left: 30%;
+  background: color-mix(in srgb, var(--card-theme, #6d28d9) 30%, #f472b6);
+  animation: blobFloatC 26s ease-in-out infinite;
+}
+
+@keyframes blobFloatA {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(60px, 50px) scale(1.12); }
+}
+@keyframes blobFloatB {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(-50px, 70px) scale(1.08); }
+}
+@keyframes blobFloatC {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(40px, -60px) scale(1.15); }
+}
+
+/* Kartın yumuşak içeri-süzülme animasyonu */
+@keyframes cardRise {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.card-rise { animation: cardRise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* Hareketi azalt tercihi olan kullanıcılar için animasyonları kapat */
+@media (prefers-reduced-motion: reduce) {
+  .card-bg__blobs span,
+  .card-rise { animation: none; }
+}
+
 /* Form alanları için ortak stil */
 .input {
   width: 100%;

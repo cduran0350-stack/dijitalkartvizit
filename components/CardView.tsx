@@ -84,8 +84,18 @@ export default function CardView({ username }: { username: string }) {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-100 pb-12">
-      <div className="mx-auto max-w-md">
+    <div
+      className="card-bg min-h-screen px-0 py-0 sm:flex sm:items-center sm:justify-center sm:p-8"
+      style={{ ["--card-theme" as string]: theme }}
+    >
+      {/* Süzülen renk lekeleri (dekoratif) */}
+      <div className="card-bg__blobs" aria-hidden>
+        <span />
+        <span />
+        <span />
+      </div>
+
+      <div className="card-rise mx-auto w-full max-w-md overflow-hidden bg-white pb-10 shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)] ring-1 ring-black/5 sm:rounded-[28px]">
         {/* Kapak + renk bandı */}
         <div
           className="h-36 w-full"

@@ -13,7 +13,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Link önizlemelerinde (WhatsApp/Telegram) resim ve URL'lerin tam adrese
+// çözülmesi için temel adres. NEXT_PUBLIC_SITE_URL .env.local'da tanımlı.
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "Dijital Kartvizit",
   description: "NFC destekli dijital kartvizit — tek dokunuşla tüm bilgileriniz.",
 };

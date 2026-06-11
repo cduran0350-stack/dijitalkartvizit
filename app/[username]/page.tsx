@@ -19,22 +19,35 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const titleLine = [profile.title, profile.company].filter(Boolean).join(" · ");
   const description = profile.bio || titleLine || "Dijital kartvizit";
-  const images = profile.photoURL ? [{ url: profile.photoURL, alt: profile.fullName }] : [];
+
+  // WhatsApp başlığında, referans paylaşımdaki gibi isim + marka etiketi görünür:
+  // "Ayşe Nur Çevik (Dijital Kartvizit)"
+  const shareTitle = `${profile.fullName} (Dijital Kartvizit)`;
+
+  // og:image mutlak URL olmalı (WhatsApp JS çalıştırmaz, ham HTML'i okur).
+  // Fotoğraf yoksa kapak görselini, o da yoksa hiçbirini kullanma.
+  const imageUrl = profile.photoURL || profile.coverURL;
+  const images = imageUrl
+    ? [{ url: imageUrl, width: 1200, height: 1200, alt: profile.fullName }]
+    : [];
 
   return {
-    title: profile.fullName,
+    title: shareTitle,
     description,
     openGraph: {
       type: "profile",
-      title: profile.fullName,
+      title: shareTitle,
       description,
+      url: `/${profile.username}`,
+      siteName: "Dijital Kartvizit",
+      locale: "tr_TR",
       images,
     },
     twitter: {
-      card: "summary",
-      title: profile.fullName,
+      card: imageUrl ? "summary_large_image" : "summary",
+      title: shareTitle,
       description,
-      images: profile.photoURL ? [profile.photoURL] : [],
+      images: imageUrl ? [imageUrl] : [],
     },
   };
 }
