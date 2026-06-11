@@ -14,6 +14,7 @@ import {
   FaUsers,
   FaCamera,
   FaRotateLeft,
+  FaHouse,
 } from "react-icons/fa6";
 import Link from "next/link";
 import { auth } from "@/lib/firebase";
@@ -280,6 +281,12 @@ export default function Editor({
                   <FaUsers /> Yönetici Paneli
                 </Link>
               )}
+              <Link
+                href="/"
+                className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-800"
+              >
+                <FaHouse /> Anasayfa
+              </Link>
               <button
                 onClick={() => auth && signOut(auth)}
                 className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-800"
