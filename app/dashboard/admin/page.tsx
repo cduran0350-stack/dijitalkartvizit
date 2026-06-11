@@ -60,18 +60,31 @@ export default function AdminPage() {
       </Centered>
     );
 
+  const ruleHint =
+    "İşlem reddedildi. Firebase konsolu → Firestore → Rules bölümüne yönetici (isAdmin) kurallarını yapıştırıp Publish ettiğinden emin ol.";
+
   const toggle = async (p: Profile) => {
-    await setProfilePublished(p.uid, !p.published);
-    setProfiles((list) =>
-      list.map((x) => (x.uid === p.uid ? { ...x, published: !p.published } : x))
-    );
+    try {
+      await setProfilePublished(p.uid, !p.published);
+      setProfiles((list) =>
+        list.map((x) => (x.uid === p.uid ? { ...x, published: !p.published } : x))
+      );
+    } catch (e) {
+      const denied = (e as { code?: string })?.code === "permission-denied";
+      alert(denied ? ruleHint : "Güncellenemedi: " + (e as Error).message);
+    }
   };
 
   const remove = async (p: Profile) => {
     if (!confirm(`"${p.fullName || p.username}" kartı silinsin mi? Bu işlem geri alınamaz.`))
       return;
-    await deleteProfileByUid(p.uid);
-    setProfiles((list) => list.filter((x) => x.uid !== p.uid));
+    try {
+      await deleteProfileByUid(p.uid);
+      setProfiles((list) => list.filter((x) => x.uid !== p.uid));
+    } catch (e) {
+      const denied = (e as { code?: string })?.code === "permission-denied";
+      alert(denied ? ruleHint : "Silinemedi: " + (e as Error).message);
+    }
   };
 
   const filtered = profiles.filter((p) => {
