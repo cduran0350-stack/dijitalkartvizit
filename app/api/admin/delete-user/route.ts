@@ -2,7 +2,7 @@
 // (Authentication) siler. Böylece silinen e-posta tekrar kayıt edilebilir.
 //
 // Güvenlik: çağıran kişinin geçerli bir yönetici ID token'ı göndermesi gerekir.
-import { adminAuth, adminDb, adminConfigured } from "@/lib/firebaseAdmin";
+import { getAdmin, adminConfigured } from "@/lib/firebaseAdmin";
 import { isAdminEmail } from "@/lib/admin";
 
 export const runtime = "nodejs";
@@ -25,19 +25,15 @@ export async function POST(request: Request) {
       return Response.json({ error: "no-token" }, { status: 401 });
     }
 
-    // Admin SDK'yı başlat (özel anahtar bozuksa burada hata verebilir)
+    // Admin SDK'yı dinamik yükle (özel anahtar bozuksa burada hata verir)
     let auth, db;
     try {
-      auth = adminAuth();
-      db = adminDb();
+      ({ auth, db } = await getAdmin());
     } catch (e) {
       return Response.json(
         { error: "admin-init-failed", detail: (e as Error)?.message },
         { status: 500 }
       );
-    }
-    if (!auth || !db) {
-      return Response.json({ error: "not-configured" }, { status: 501 });
     }
 
     // 1) Çağıranın gerçekten yönetici olduğunu doğrula
