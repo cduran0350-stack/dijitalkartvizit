@@ -11,7 +11,10 @@ import { getProfileByUid } from "@/lib/profiles";
 declare global {
   interface Window {
     NDEFReader?: new () => {
-      write: (message: { records: { recordType: string; data: string }[] }) => Promise<void>;
+      write: (
+        message: { records: { recordType: string; data: string }[] },
+        options?: { signal?: AbortSignal }
+      ) => Promise<void>;
     };
   }
 }
@@ -39,17 +42,33 @@ export default function NfcPage() {
   }, [user]);
 
   const writeTag = async () => {
-    if (!window.NDEFReader || !cardUrl) return;
+    if (!window.NDEFReader) {
+      setState("error");
+      setMessage("Bu tarayıcı NFC yazmayı desteklemiyor.");
+      return;
+    }
+    if (!cardUrl) return;
+
     setState("writing");
-    setMessage("Kartı telefonun arkasına yaklaştır...");
+    setMessage("📲 Boş NFC etiketini telefonun ARKA ÜST kısmına değdir ve bekle...");
+
+    // 25 sn içinde etiket değmezse iptal et
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 25000);
+
     try {
       const ndef = new window.NDEFReader();
-      await ndef.write({ records: [{ recordType: "url", data: cardUrl }] });
+      await ndef.write(
+        { records: [{ recordType: "url", data: cardUrl }] },
+        { signal: controller.signal }
+      );
+      clearTimeout(timer);
       setState("done");
       setMessage("✓ Kart başarıyla programlandı! Artık dokununca profilin açılacak.");
     } catch (e) {
+      clearTimeout(timer);
       setState("error");
-      setMessage("Yazılamadı: " + ((e as Error).message || "bilinmeyen hata"));
+      setMessage(nfcError(e));
     }
   };
 
@@ -100,12 +119,21 @@ export default function NfcPage() {
 
         {supported ? (
           <>
+            <ol className="mt-4 space-y-1 text-left text-sm text-zinc-600">
+              <li>1. Telefon ayarlarından <strong>NFC&apos;yi aç</strong>.</li>
+              <li>2. Aşağıdaki butona bas.</li>
+              <li>3. <strong>Boş NFC etiketini</strong> telefonun <strong>arka üst</strong> kısmına değdir.</li>
+            </ol>
+            <div className="mt-3 rounded-lg bg-amber-50 p-3 text-left text-xs text-amber-800">
+              ⚠️ Etiket <strong>13.56 MHz NFC</strong> olmalı (NTAG213/215/216).
+              <strong> 125 kHz / EM4100 / kapı geçiş kartları çalışmaz.</strong>
+            </div>
             <button
               onClick={writeTag}
               disabled={state === "writing"}
               className="mt-4 w-full rounded-xl bg-violet-700 py-3 font-semibold text-white transition hover:bg-violet-800 disabled:opacity-60"
             >
-              {state === "writing" ? "Kartı yaklaştır..." : "Karta Yazmaya Başla"}
+              {state === "writing" ? "Etiketi yaklaştır..." : "Karta Yazmaya Başla"}
             </button>
             {message && (
               <p
@@ -143,6 +171,25 @@ export default function NfcPage() {
       </div>
     </div>
   );
+}
+
+// NFC hatalarını Türkçe, çözüm odaklı mesaja çevirir
+function nfcError(e: unknown): string {
+  const name = (e as { name?: string })?.name || "";
+  switch (name) {
+    case "AbortError":
+      return "Etiket algılanmadı (süre doldu). Boş bir NFC etiketini telefonun arka üst kısmına değdirip tekrar dene.";
+    case "NotAllowedError":
+      return "NFC izni verilmedi ya da NFC kapalı. Telefon ayarlarından NFC'yi aç, çıkan izin penceresinde 'İzin Ver' de.";
+    case "NotSupportedError":
+      return "Bu cihaz/tarayıcı NFC yazmayı desteklemiyor (NFC çipi yok ya da kapalı).";
+    case "NotReadableError":
+      return "NFC donanımına erişilemedi. NFC'yi kapatıp tekrar açmayı dene.";
+    case "NetworkError":
+      return "Etikete yazılamadı. Etiket dolu/kilitli olabilir; boş bir etiket dene ve telefonu sabit tut.";
+    default:
+      return "Yazılamadı: " + ((e as Error).message || "bilinmeyen hata");
+  }
 }
 
 function Centered({ children }: { children: React.ReactNode }) {
