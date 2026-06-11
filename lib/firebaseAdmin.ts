@@ -11,9 +11,25 @@ import { getFirestore, type Firestore } from "firebase-admin/firestore";
 
 const projectId =
   process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID;
-const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-// Vercel'de \n kaçışlı girilirse gerçek satır sonuna çevir
-const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+const clientEmail = process.env.FIREBASE_CLIENT_EMAIL?.trim();
+
+// Özel anahtarı her formatta kabul et:
+// - başına/sonuna yanlışlıkla eklenen tırnakları temizle
+// - \n kaçışlarını gerçek satır sonuna çevir
+function normalizePrivateKey(raw?: string): string | undefined {
+  if (!raw) return undefined;
+  let key = raw.trim();
+  if (
+    (key.startsWith('"') && key.endsWith('"')) ||
+    (key.startsWith("'") && key.endsWith("'"))
+  ) {
+    key = key.slice(1, -1);
+  }
+  key = key.replace(/\\n/g, "\n");
+  return key;
+}
+
+const privateKey = normalizePrivateKey(process.env.FIREBASE_PRIVATE_KEY);
 
 /** Admin SDK için gerekli ortam değişkenleri tanımlı mı? */
 export function adminConfigured(): boolean {
