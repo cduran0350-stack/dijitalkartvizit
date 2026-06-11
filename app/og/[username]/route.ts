@@ -1,15 +1,15 @@
 // WhatsApp/Telegram link önizlemesi için GERÇEK bir resim URL'i.
 // Profil fotoğrafı Firestore'da data URL olarak tutulduğundan (Storage'sız),
 // burada ham bayta çevirip image/jpeg olarak servis ediyoruz. Fotoğraf yoksa
-// markalı bir varsayılan kart üretiyoruz.
+// markalı statik bir banner'a yönlendiriyoruz. (next/og kullanılmaz — her
+// ortamda sorunsuz derlenir.)
 
-import { ImageResponse } from "next/og";
 import { getProfileByUsername } from "@/lib/profiles";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ username: string }> }
 ) {
   const { username } = await params;
@@ -21,7 +21,7 @@ export async function GET(
     const comma = photo.indexOf(",");
     const mime = photo.slice(5, comma).split(";")[0] || "image/jpeg";
     const bytes = Buffer.from(photo.slice(comma + 1), "base64");
-    return new Response(bytes, {
+    return new Response(new Uint8Array(bytes), {
       headers: {
         "Content-Type": mime,
         "Cache-Control": "public, max-age=300, s-maxage=300",
@@ -34,29 +34,6 @@ export async function GET(
     return Response.redirect(photo, 302);
   }
 
-  // 3) Fotoğraf yok → markalı varsayılan kart
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)",
-          color: "#ffffff",
-        }}
-      >
-        <div style={{ display: "flex", fontSize: 80, fontWeight: 800, letterSpacing: -2 }}>
-          Dijital Kartvizit
-        </div>
-        <div style={{ display: "flex", marginTop: 16, fontSize: 32, opacity: 0.85 }}>
-          NFC destekli dijital kartvizit
-        </div>
-      </div>
-    ),
-    { width: 1200, height: 630 }
-  );
+  // 3) Fotoğraf yok → markalı varsayılan banner
+  return Response.redirect(new URL("/og-default.svg", req.url), 302);
 }
