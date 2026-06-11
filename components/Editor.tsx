@@ -13,6 +13,7 @@ import {
   FaGripVertical,
   FaUsers,
   FaCamera,
+  FaRotateLeft,
 } from "react-icons/fa6";
 import Link from "next/link";
 import { auth } from "@/lib/firebase";
@@ -23,6 +24,7 @@ import { PLATFORM_LIST, PLATFORMS } from "@/lib/platforms";
 import type { CardLink, LinkType, Profile } from "@/lib/types";
 import { getProfileByUid, isUsernameAvailable, saveProfile } from "@/lib/profiles";
 import { uploadProfilePhoto, deleteProfilePhoto } from "@/lib/storage";
+import { clearStats } from "@/lib/analytics";
 
 function emptyProfile(user: User): Profile {
   return {
@@ -83,6 +85,8 @@ export default function Editor({
   const [overIndex, setOverIndex] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
+  const [resetting, setResetting] = useState(false);
+  const [statsKey, setStatsKey] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -194,6 +198,61 @@ export default function Editor({
     }
   };
 
+  // Kartı sıfırla: ad-soyad, kullanıcı adı, e-posta ve telefon dışındaki her şeyi
+  // temizler; ziyaret ve rehbere ekleme istatistiklerini de sıfırlar.
+  const resetCard = async () => {
+    const ok = window.confirm(
+      "Bu kartı sıfırlamak istediğinize emin misiniz?\n\n" +
+        "Ad-soyad, kullanıcı adı, e-posta ve telefon KORUNUR.\n" +
+        "Ünvan, şirket, hakkında, fotoğraf, tema, web sitesi ve tüm bağlantılar SİLİNİR.\n" +
+        "Ziyaret ve rehbere eklenme istatistikleri de SIFIRLANIR.\n\n" +
+        "Bu işlem geri alınamaz."
+    );
+    if (!ok) return;
+
+    setStatus(null);
+    setResetting(true);
+    try {
+      // Varsa profil fotoğrafını da depolama alanından kaldır
+      if (profile.photoURL) {
+        try {
+          await deleteProfilePhoto(profile.photoURL);
+        } catch {
+          /* fotoğraf silinemese de devam et */
+        }
+      }
+
+      const cleared: Profile = {
+        ...profile,
+        // Korunan alanlar
+        uid: profile.uid,
+        username: profile.username,
+        fullName: profile.fullName,
+        email: profile.email,
+        phone: profile.phone,
+        // Sıfırlanan alanlar
+        title: "",
+        company: "",
+        bio: "",
+        photoURL: "",
+        coverURL: "",
+        themeColor: "#6d28d9",
+        website: "",
+        links: [],
+      };
+
+      await saveProfile(cleared);
+      await clearStats(editUid);
+      setProfile(cleared);
+      setStatsKey((k) => k + 1); // istatistik panelini yenile
+      setStatus("✓ Kart sıfırlandı (ad, kullanıcı adı, e-posta, telefon korundu).");
+    } catch (e) {
+      setStatus((e as Error).message || "Sıfırlanamadı.");
+    } finally {
+      setResetting(false);
+    }
+  };
+
   const publicUrl = `${siteUrl}/${profile.username || "kullaniciadi"}`;
 
   return (
@@ -234,13 +293,31 @@ export default function Editor({
 
       {adminMode && (
         <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Yönetici olarak <strong>{editUid}</strong> kullanıcısının kartını
-          düzenliyorsun. Değişiklikler kaydedilince kullanıcının kartına yansır.
+          <p>
+            Yönetici olarak <strong>{profile.email || editUid}</strong>{" "}
+            kullanıcısının kartını düzenliyorsun. Değişiklikler kaydedilince
+            kullanıcının kartına yansır.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-amber-200 pt-3">
+            <button
+              type="button"
+              onClick={resetCard}
+              disabled={resetting}
+              className="inline-flex items-center gap-2 rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-60"
+            >
+              <FaRotateLeft className={resetting ? "animate-spin" : ""} />
+              {resetting ? "Sıfırlanıyor..." : "Kartı Sıfırla"}
+            </button>
+            <span className="text-xs text-amber-700">
+              Ad-soyad, kullanıcı adı, e-posta ve telefon korunur; geri kalan tüm
+              bilgiler ve istatistikler silinir.
+            </span>
+          </div>
         </div>
       )}
 
       {/* İstatistikler */}
-      <StatsPanel uid={editUid} />
+      <StatsPanel key={statsKey} uid={editUid} />
 
       {/* Yayın & adres */}
       <div className="mb-6 rounded-xl border border-zinc-200 bg-white p-4">

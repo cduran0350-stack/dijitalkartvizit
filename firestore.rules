@@ -6,7 +6,7 @@ service cloud.firestore {
     function isAdmin() {
       return request.auth != null
              && request.auth.token.email in [
-               'cduran0350@gmail.com'
+               'cagriduran0350@gmail.com'
              ];
     }
     function isOwner(uid) {
@@ -20,9 +20,10 @@ service cloud.firestore {
 
       // İstatistik olayları (ziyaret / rehbere ekleme):
       // ziyaretçiler kayıt ekleyebilir, sadece kart sahibi veya yönetici okuyabilir
+      // ve sıfırlama için sahibi/yönetici silebilir
       match /{sub}/{docId} {
         allow create: if sub == 'views' || sub == 'contacts';
-        allow read: if isOwner(uid) || isAdmin();
+        allow read, delete: if isOwner(uid) || isAdmin();
       }
     }
   }

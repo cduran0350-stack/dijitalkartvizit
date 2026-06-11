@@ -3,6 +3,8 @@ import {
   collection,
   addDoc,
   getCountFromServer,
+  getDocs,
+  writeBatch,
   query,
   where,
 } from "firebase/firestore";
@@ -23,6 +25,35 @@ export async function logEvent(uid: string, type: EventType): Promise<void> {
   } catch {
     // istatistik kaydı kritik değil, sessizce geç
   }
+}
+
+/** Bir alt koleksiyondaki tüm kayıtları sil (toplu, 400'erli partiler) */
+async function clearCollection(uid: string, type: EventType): Promise<void> {
+  if (!db) return;
+  const ref = collection(db, "profiles", uid, coll(type));
+  // Tüm kayıtları getir, batch'ler halinde sil
+  let snap = await getDocs(ref);
+  while (!snap.empty) {
+    let batch = writeBatch(db);
+    let n = 0;
+    for (const d of snap.docs) {
+      batch.delete(d.ref);
+      n++;
+      if (n === 400) {
+        await batch.commit();
+        batch = writeBatch(db);
+        n = 0;
+      }
+    }
+    if (n > 0) await batch.commit();
+    snap = await getDocs(ref);
+  }
+}
+
+/** Bir profilin ziyaret ve rehbere ekleme istatistiklerini tamamen sıfırla */
+export async function clearStats(uid: string): Promise<void> {
+  if (!isFirebaseConfigured || !db || !uid) return;
+  await Promise.all([clearCollection(uid, "view"), clearCollection(uid, "contact")]);
 }
 
 /** Gün/hafta/ay/yıl başlangıç zaman damgaları (ms) */
