@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import CardView from "@/components/CardView";
 import { getProfileByUsername } from "@/lib/profiles";
 
@@ -25,11 +26,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // "Ayşe Nur Çevik (Dijital Kartvizit)"
   const shareTitle = `${profile.fullName} (Dijital Kartvizit)`;
 
+  // Mutlak adresi, sayfanın açıldığı GERÇEK alan adından üret. Böylece domain
+  // değişse de (omega, sirket..., ileride kendi alan adın) og:image hep doğru
+  // adresten gelir; sabit bir env değişkenine bağımlı kalmaz.
+  const h = await headers();
+  const host = h.get("x-forwarded-host") || h.get("host") || "";
+  const proto = h.get("x-forwarded-proto") || "https";
+  const base = host
+    ? `${proto}://${host}`
+    : (process.env.NEXT_PUBLIC_SITE_URL || "");
+
   // Profil fotoğrafı Firestore'da data URL olarak tutulduğu için doğrudan
-  // og:image yapılamaz (WhatsApp data URL'i çekemez). Bunun yerine fotoğrafı
-  // gerçek bir resim olarak servis eden /og/[username] uç noktasını gösteriyoruz.
-  // metadataBase ile mutlak adrese çözülür.
-  const ogImage = `/og/${encodeURIComponent(profile.username)}`;
+  // og:image yapılamaz (WhatsApp data URL'i çekemez). Fotoğrafı gerçek bir
+  // resim olarak servis eden /og/[username] uç noktasını gösteriyoruz.
+  const ogImage = `${base}/og/${encodeURIComponent(profile.username)}`;
+  const pageUrl = `${base}/${encodeURIComponent(profile.username)}`;
 
   return {
     title: shareTitle,
@@ -38,7 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "profile",
       title: shareTitle,
       description,
-      url: `/${profile.username}`,
+      url: pageUrl,
       siteName: "Dijital Kartvizit",
       locale: "tr_TR",
       images: [{ url: ogImage, alt: profile.fullName }],
