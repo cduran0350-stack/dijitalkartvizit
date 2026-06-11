@@ -89,6 +89,53 @@ export default function AdminPage() {
     }
   };
 
+  const [resetting, setResetting] = useState<string | null>(null);
+
+  const resetPassword = async (p: Profile) => {
+    if (
+      !confirm(
+        `"${p.fullName || p.username}" kullanıcısının şifresi 123456'ya ` +
+          "sıfırlansın mı?\n\nKullanıcı bu şifreyle giriş yapıp yeni bir şifre " +
+          "belirlemek zorunda kalır."
+      )
+    )
+      return;
+    setResetting(p.uid);
+    try {
+      const idToken = await auth?.currentUser?.getIdToken();
+      const res = await fetch("/api/admin/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken, uid: p.uid }),
+      });
+      if (!res.ok) {
+        const raw = await res.text().catch(() => "");
+        let data: { error?: string; detail?: string } = {};
+        try {
+          data = JSON.parse(raw);
+        } catch {
+          /* JSON değil */
+        }
+        const detay =
+          data.error || data.detail
+            ? `${data.error || ""}${data.detail ? " — " + data.detail : ""}`
+            : raw.slice(0, 200) || "(boş yanıt)";
+        throw new Error(`HTTP ${res.status}: ${detay}`);
+      }
+      // Panelde tekrar 123456 görünsün
+      setProfiles((list) =>
+        list.map((x) =>
+          x.uid === p.uid ? { ...x, mustChangePassword: true } : x
+        )
+      );
+      alert("✓ Şifre 123456 olarak sıfırlandı.");
+    } catch (e) {
+      alert("Sıfırlanamadı: " + (e as Error).message);
+    } finally {
+      setResetting(null);
+    }
+  };
+
   const remove = async (p: Profile) => {
     if (
       !confirm(
@@ -242,6 +289,15 @@ export default function AdminPage() {
                       </span>
                     )}
                   </span>
+                  <button
+                    onClick={() => resetPassword(p)}
+                    disabled={resetting === p.uid}
+                    title="Şifreyi 123456'ya sıfırla"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-zinc-300 px-2 py-1 text-xs font-medium text-zinc-600 transition hover:bg-zinc-50 disabled:opacity-60"
+                  >
+                    <FaKey className="text-[10px]" />
+                    {resetting === p.uid ? "Sıfırlanıyor..." : "Şifreyi sıfırla"}
+                  </button>
                 </div>
               );
             })}
