@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   FaArrowLeft,
   FaTrash,
@@ -11,6 +12,7 @@ import {
   FaPen,
   FaPlus,
   FaRightFromBracket,
+  FaHouse,
 } from "react-icons/fa6";
 import { signOut } from "firebase/auth";
 import { useAuth } from "@/components/AuthProvider";
@@ -25,11 +27,18 @@ import type { Profile } from "@/lib/types";
 
 export default function AdminPage() {
   const { user, loading, configured } = useAuth();
+  const router = useRouter();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [busy, setBusy] = useState(true);
   const [search, setSearch] = useState("");
 
   const admin = isAdminEmail(user?.email);
+
+  // Çıkış yap ve ana sayfaya dön
+  const logout = async () => {
+    if (auth) await signOut(auth);
+    router.push("/");
+  };
 
   useEffect(() => {
     if (!admin) return;
@@ -137,12 +146,20 @@ export default function AdminPage() {
         >
           <FaArrowLeft /> Panele dön
         </Link>
-        <button
-          onClick={() => auth && signOut(auth)}
-          className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-800"
-        >
-          <FaRightFromBracket /> Çıkış
-        </button>
+        <div className="flex items-center gap-4">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-800"
+          >
+            <FaHouse /> Anasayfa
+          </Link>
+          <button
+            onClick={logout}
+            className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-800"
+          >
+            <FaRightFromBracket /> Çıkış
+          </button>
+        </div>
       </div>
 
       <div className="mb-6 flex items-center gap-3">
