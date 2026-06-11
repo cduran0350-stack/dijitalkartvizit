@@ -13,6 +13,7 @@ import {
 } from "react-icons/fa6";
 import { useAuth } from "@/components/AuthProvider";
 import { isAdminEmail } from "@/lib/admin";
+import { auth } from "@/lib/firebase";
 import {
   getAllProfiles,
   deleteProfileByUid,
@@ -76,10 +77,38 @@ export default function AdminPage() {
   };
 
   const remove = async (p: Profile) => {
-    if (!confirm(`"${p.fullName || p.username}" kartı silinsin mi? Bu işlem geri alınamaz.`))
+    if (
+      !confirm(
+        `"${p.fullName || p.username}" kartı silinsin mi?\n\n` +
+          "Kart bilgileri VE giriş hesabı (e-posta) tamamen silinir; " +
+          "aynı e-posta sonradan yeniden eklenebilir.\nBu işlem geri alınamaz."
+      )
+    )
       return;
     try {
-      await deleteProfileByUid(p.uid);
+      // Hem Firestore kartını hem de Authentication hesabını sunucuda sil
+      const idToken = await auth?.currentUser?.getIdToken();
+      const res = await fetch("/api/admin/delete-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken, uid: p.uid }),
+      });
+
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        if (data.error === "not-configured") {
+          // Sunucu anahtarı tanımlı değil → en azından kartı istemci tarafında sil
+          await deleteProfileByUid(p.uid);
+          alert(
+            "Kart silindi, ancak giriş hesabı (e-posta) silinemedi: sunucu " +
+              "anahtarı (FIREBASE_PRIVATE_KEY / FIREBASE_CLIENT_EMAIL) tanımlı değil. " +
+              "Aynı e-posta tekrar eklenemez. Vercel ortam değişkenlerini ekleyince düzelir."
+          );
+        } else {
+          throw new Error(data.error || "Silinemedi");
+        }
+      }
+
       setProfiles((list) => list.filter((x) => x.uid !== p.uid));
     } catch (e) {
       const denied = (e as { code?: string })?.code === "permission-denied";

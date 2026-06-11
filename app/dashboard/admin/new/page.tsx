@@ -6,8 +6,9 @@ import Link from "next/link";
 import { FaArrowLeft, FaUserPlus } from "react-icons/fa6";
 import { useAuth } from "@/components/AuthProvider";
 import { isAdminEmail } from "@/lib/admin";
+import { auth } from "@/lib/firebase";
 import { createUserAccount, authHataMesaji } from "@/lib/adminUsers";
-import { saveProfile } from "@/lib/profiles";
+import { saveProfile, getProfileByEmail } from "@/lib/profiles";
 import type { Profile } from "@/lib/types";
 
 // Yönetici tarafından açılan her hesabın varsayılan şifresi.
@@ -61,7 +62,42 @@ export default function NewUserPage() {
     try {
       // 1) Kişi için giriş hesabı oluştur (yöneticinin oturumu bozulmaz).
       //    Şifre otomatik olarak 123456; kullanıcı ilk girişte değiştirecek.
-      const uid = await createUserAccount(mail, DEFAULT_PASSWORD);
+      let uid: string;
+      try {
+        uid = await createUserAccount(mail, DEFAULT_PASSWORD);
+      } catch (err) {
+        const code = (err as { code?: string })?.code;
+        if (code !== "auth/email-already-in-use") throw err;
+
+        // E-posta Firebase'de kayıtlı. Aktif bir kart var mı?
+        const existing = await getProfileByEmail(mail);
+        if (existing) {
+          setError("Bu e-posta zaten kayıtlı (aktif bir kart mevcut).");
+          setBusy(false);
+          return;
+        }
+
+        // Kart yok = yetim giriş hesabı (kartı önceden silinmiş).
+        // Sunucuda bu hesabı temizleyip yeniden oluşturmayı dene.
+        const idToken = await auth?.currentUser?.getIdToken();
+        const res = await fetch("/api/admin/delete-user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken, email: mail }),
+        });
+        if (!res.ok) {
+          const data = (await res.json().catch(() => ({}))) as { error?: string };
+          setError(
+            data.error === "not-configured"
+              ? "Bu e-posta Firebase'de kalmış; serbest bırakmak için sunucu anahtarı (FIREBASE_PRIVATE_KEY / FIREBASE_CLIENT_EMAIL) gerekli. Vercel ortam değişkenlerini ekleyince çalışır."
+              : "E-posta serbest bırakılamadı. Tekrar deneyin."
+          );
+          setBusy(false);
+          return;
+        }
+        // Temizlendi → yeniden oluştur
+        uid = await createUserAccount(mail, DEFAULT_PASSWORD);
+      }
 
       // 2) Bu uid için başlangıç kartı (profil) oluştur.
       //    Giriş e-postası = rehbere eklenecek (vCard) e-posta.

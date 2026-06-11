@@ -34,6 +34,19 @@ export async function getProfileByUsername(username: string): Promise<Profile | 
   return snap.docs[0].data() as Profile;
 }
 
+/** E-postaya göre profil getir (aktif kart kontrolü için) */
+export async function getProfileByEmail(email: string): Promise<Profile | null> {
+  if (!isFirebaseConfigured || !db) return null;
+  const q = query(
+    collection(db, COLLECTION),
+    where("email", "==", email.toLowerCase()),
+    limit(1)
+  );
+  const snap = await getDocs(q);
+  if (snap.empty) return null;
+  return snap.docs[0].data() as Profile;
+}
+
 /** Sahibin uid'sine göre profil getir (panel için) */
 export async function getProfileByUid(uid: string): Promise<Profile | null> {
   if (!isFirebaseConfigured || !db) return null;
