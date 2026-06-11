@@ -13,6 +13,7 @@ import {
   FaPlus,
   FaRightFromBracket,
   FaHouse,
+  FaKey,
 } from "react-icons/fa6";
 import { signOut } from "firebase/auth";
 import { useAuth } from "@/components/AuthProvider";
@@ -31,6 +32,7 @@ export default function AdminPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [busy, setBusy] = useState(true);
   const [search, setSearch] = useState("");
+  const [showCreds, setShowCreds] = useState(false);
 
   const admin = isAdminEmail(user?.email);
 
@@ -185,6 +187,17 @@ export default function AdminPage() {
           <h1 className="text-xl font-bold text-zinc-900">Yönetici Paneli</h1>
           <p className="text-sm text-zinc-500">{profiles.length} kayıtlı kart</p>
         </div>
+        <button
+          onClick={() => setShowCreds((s) => !s)}
+          title="Giriş bilgilerini göster"
+          className={`flex h-10 w-10 items-center justify-center rounded-lg border text-sm transition ${
+            showCreds
+              ? "border-violet-300 bg-violet-50 text-violet-700"
+              : "border-zinc-300 text-zinc-600 hover:bg-zinc-50"
+          }`}
+        >
+          <FaKey />
+        </button>
         <Link
           href="/dashboard/admin/new"
           className="flex items-center gap-2 rounded-lg bg-violet-700 px-3 py-2 text-sm font-semibold text-white transition hover:bg-violet-800"
@@ -192,6 +205,52 @@ export default function AdminPage() {
           <FaPlus /> Yeni Kart
         </Link>
       </div>
+
+      {/* Giriş bilgileri (anahtar butonu) */}
+      {showCreds && (
+        <div className="mb-4 overflow-hidden rounded-xl border border-violet-200 bg-white">
+          <div className="border-b border-violet-100 bg-violet-50 px-4 py-2.5 text-sm text-violet-800">
+            <strong>Giriş bilgileri.</strong> Şifre yalnızca kullanıcı henüz
+            değiştirmediyse <code className="rounded bg-white px-1">123456</code>{" "}
+            olarak görünür; değiştirenlerin şifresi Firebase'de güvenlik için
+            görüntülenemez.
+          </div>
+          <div className="divide-y divide-zinc-100">
+            {profiles.map((p) => {
+              const pending = p.mustChangePassword;
+              return (
+                <div
+                  key={p.uid}
+                  className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2.5 text-sm"
+                >
+                  <span className="min-w-0 flex-1 font-medium text-zinc-800">
+                    {p.fullName || "(isimsiz)"}
+                  </span>
+                  <span className="text-zinc-600">
+                    <span className="text-zinc-400">E-posta: </span>
+                    {p.email || "—"}
+                  </span>
+                  <span>
+                    <span className="text-zinc-400">Şifre: </span>
+                    {pending ? (
+                      <code className="rounded bg-amber-50 px-1.5 py-0.5 font-semibold text-amber-700">
+                        123456
+                      </code>
+                    ) : (
+                      <span className="text-zinc-400 italic">
+                        değiştirildi — görüntülenemez
+                      </span>
+                    )}
+                  </span>
+                </div>
+              );
+            })}
+            {profiles.length === 0 && (
+              <p className="px-4 py-3 text-sm text-zinc-500">Kayıt yok.</p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Arama */}
       <div className="mb-4 flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3">
