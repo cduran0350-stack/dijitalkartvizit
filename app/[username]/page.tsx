@@ -17,8 +17,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: "Kart bulunamadı" };
   }
 
-  const titleLine = [profile.title, profile.company].filter(Boolean).join(" · ");
-  const description = profile.bio || titleLine || "Dijital kartvizit";
+  // Başlığın altında açıklama (bio) yerine ünvan ve şirket alt alta görünsün.
+  const description =
+    [profile.title, profile.company].filter(Boolean).join("\n") || "Dijital kartvizit";
 
   // WhatsApp başlığında, referans paylaşımdaki gibi isim + marka etiketi görünür:
   // "Ayşe Nur Çevik (Dijital Kartvizit)"
