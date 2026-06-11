@@ -14,7 +14,15 @@ import { FaGoogle, FaEye, FaEyeSlash } from "react-icons/fa6";
 import { auth } from "@/lib/firebase";
 
 export default function LoginForm() {
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [mode, setMode] = useState<"login" | "register">(() => {
+    if (
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("mode") === "register"
+    ) {
+      return "register";
+    }
+    return "login";
+  });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);

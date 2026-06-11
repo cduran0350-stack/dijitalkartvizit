@@ -4,6 +4,29 @@ import { FaBolt, FaIdCard, FaWifi } from "react-icons/fa6";
 export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-violet-50 to-white">
+      {/* Üst bar */}
+      <header className="sticky top-0 z-10 border-b border-violet-100/60 bg-white/80 backdrop-blur">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3">
+          <Link href="/" className="flex items-center gap-2 font-bold text-zinc-900">
+            <FaWifi className="text-violet-700" /> Dijital Kartvizit
+          </Link>
+          <nav className="flex items-center gap-2">
+            <Link
+              href="/dashboard"
+              className="rounded-lg px-4 py-2 text-sm font-semibold text-violet-700 transition hover:bg-violet-50"
+            >
+              Giriş Yap
+            </Link>
+            <Link
+              href="/dashboard?mode=register"
+              className="rounded-lg bg-violet-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-800"
+            >
+              Kayıt Ol
+            </Link>
+          </nav>
+        </div>
+      </header>
+
       <div className="mx-auto max-w-3xl px-6 py-20 text-center">
         <span className="inline-flex items-center gap-2 rounded-full bg-violet-100 px-4 py-1 text-sm font-medium text-violet-700">
           <FaWifi /> NFC destekli dijital kartvizit
@@ -23,12 +46,6 @@ export default function Home() {
             className="rounded-xl bg-violet-700 px-6 py-3 font-semibold text-white shadow-lg transition hover:bg-violet-800"
           >
             Panele Giriş
-          </Link>
-          <Link
-            href="/demo"
-            className="rounded-xl border border-zinc-300 bg-white px-6 py-3 font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50"
-          >
-            Örnek Kartı Gör
           </Link>
         </div>
 
