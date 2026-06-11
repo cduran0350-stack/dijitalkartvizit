@@ -10,7 +10,9 @@ import {
   FaUsers,
   FaPen,
   FaPlus,
+  FaRightFromBracket,
 } from "react-icons/fa6";
+import { signOut } from "firebase/auth";
 import { useAuth } from "@/components/AuthProvider";
 import { isAdminEmail } from "@/lib/admin";
 import { auth } from "@/lib/firebase";
@@ -128,12 +130,20 @@ export default function AdminPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <Link
-        href="/dashboard"
-        className="mb-4 inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-800"
-      >
-        <FaArrowLeft /> Panele dön
-      </Link>
+      <div className="mb-4 flex items-center justify-between">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-800"
+        >
+          <FaArrowLeft /> Panele dön
+        </Link>
+        <button
+          onClick={() => auth && signOut(auth)}
+          className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-800"
+        >
+          <FaRightFromBracket /> Çıkış
+        </button>
+      </div>
 
       <div className="mb-6 flex items-center gap-3">
         <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-100 text-violet-700">
