@@ -41,6 +41,28 @@ body {
           mask-image: radial-gradient(circle at 50% 30%, #000 0%, transparent 80%);
 }
 
+/* Arka planda süzülen silik logolar */
+.card-bg__icons {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+.card-bg__icons > * {
+  position: absolute;
+  color: #ffffff;
+  opacity: 0.07;
+  animation: iconDrift 16s ease-in-out infinite;
+}
+@keyframes iconDrift {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-16px) rotate(4deg); }
+}
+@media (max-width: 640px) {
+  .card-bg__icons > * { font-size: 20px !important; }
+}
+
 /* Yumuşak, süzülen ışık lekeleri */
 .card-bg__blobs {
   position: absolute;
@@ -96,6 +118,7 @@ body {
 /* Hareketi azalt tercihi olan kullanıcılar için animasyonları kapat */
 @media (prefers-reduced-motion: reduce) {
   .card-bg__blobs span,
+  .card-bg__icons > *,
   .card-rise { animation: none; }
 }
 

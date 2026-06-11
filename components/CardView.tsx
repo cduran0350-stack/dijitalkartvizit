@@ -1,12 +1,58 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FaDownload, FaShareNodes } from "react-icons/fa6";
+import {
+  FaDownload,
+  FaShareNodes,
+  FaWhatsapp,
+  FaEnvelope,
+  FaPhone,
+  FaInstagram,
+  FaFacebookF,
+  FaLinkedinIn,
+  FaYoutube,
+  FaXTwitter,
+  FaTelegram,
+  FaTiktok,
+  FaGlobe,
+  FaLocationDot,
+  FaSpotify,
+  FaGithub,
+} from "react-icons/fa6";
+import type { IconType } from "react-icons";
 import type { Profile } from "@/lib/types";
 import { PLATFORMS } from "@/lib/platforms";
 import { getProfileByUsername } from "@/lib/profiles";
 import { downloadVCard } from "@/lib/vcard";
 import { logEvent } from "@/lib/analytics";
+
+// Arka planda süzülen silik logolar — sabit, dağınık yerleşim
+const BG_ICONS: {
+  icon: IconType;
+  top: string;
+  left: string;
+  size: number;
+  delay: string;
+}[] = [
+  { icon: FaWhatsapp, top: "8%", left: "6%", size: 38, delay: "0s" },
+  { icon: FaInstagram, top: "18%", left: "24%", size: 30, delay: "1.2s" },
+  { icon: FaEnvelope, top: "6%", left: "44%", size: 26, delay: "2.4s" },
+  { icon: FaPhone, top: "14%", left: "66%", size: 34, delay: "0.6s" },
+  { icon: FaFacebookF, top: "9%", left: "86%", size: 30, delay: "3s" },
+  { icon: FaLinkedinIn, top: "30%", left: "10%", size: 32, delay: "1.8s" },
+  { icon: FaYoutube, top: "34%", left: "90%", size: 36, delay: "2.1s" },
+  { icon: FaTiktok, top: "44%", left: "4%", size: 28, delay: "0.3s" },
+  { icon: FaXTwitter, top: "48%", left: "92%", size: 30, delay: "2.7s" },
+  { icon: FaTelegram, top: "58%", left: "8%", size: 34, delay: "1.5s" },
+  { icon: FaSpotify, top: "62%", left: "88%", size: 32, delay: "0.9s" },
+  { icon: FaGlobe, top: "72%", left: "16%", size: 30, delay: "3.3s" },
+  { icon: FaLocationDot, top: "76%", left: "78%", size: 28, delay: "1s" },
+  { icon: FaGithub, top: "86%", left: "30%", size: 32, delay: "2.2s" },
+  { icon: FaWhatsapp, top: "88%", left: "62%", size: 30, delay: "0.5s" },
+  { icon: FaInstagram, top: "82%", left: "90%", size: 34, delay: "1.7s" },
+  { icon: FaEnvelope, top: "92%", left: "10%", size: 26, delay: "2.9s" },
+  { icon: FaPhone, top: "26%", left: "48%", size: 24, delay: "3.6s" },
+];
 
 export default function CardView({ username }: { username: string }) {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -85,7 +131,7 @@ export default function CardView({ username }: { username: string }) {
 
   return (
     <div
-      className="card-bg min-h-screen px-0 py-0 sm:flex sm:items-center sm:justify-center sm:p-8"
+      className="card-bg flex min-h-screen items-center justify-center p-3 sm:p-8"
       style={{ ["--card-theme" as string]: theme }}
     >
       {/* Süzülen renk lekeleri (dekoratif) */}
@@ -95,7 +141,25 @@ export default function CardView({ username }: { username: string }) {
         <span />
       </div>
 
-      <div className="card-rise mx-auto w-full max-w-md overflow-hidden bg-white pb-10 shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)] ring-1 ring-black/5 sm:rounded-[28px]">
+      {/* Arka planda süzülen silik logolar */}
+      <div className="card-bg__icons" aria-hidden>
+        {BG_ICONS.map((it, i) => {
+          const Icon = it.icon;
+          return (
+            <Icon
+              key={i}
+              style={{
+                top: it.top,
+                left: it.left,
+                fontSize: it.size,
+                animationDelay: it.delay,
+              }}
+            />
+          );
+        })}
+      </div>
+
+      <div className="card-rise mx-auto w-full max-w-md overflow-hidden rounded-3xl bg-white pb-10 shadow-[0_30px_80px_-20px_rgba(15,23,42,0.55)] ring-1 ring-black/5 sm:rounded-[28px]">
         {/* Kapak + renk bandı */}
         <div
           className="h-36 w-full"
