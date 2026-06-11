@@ -3,26 +3,14 @@
 import { useState } from "react";
 import {
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
   setPersistence,
   browserLocalPersistence,
   browserSessionPersistence,
 } from "firebase/auth";
-import { FaGoogle, FaEye, FaEyeSlash } from "react-icons/fa6";
+import { FaEye, FaEyeSlash } from "react-icons/fa6";
 import { auth } from "@/lib/firebase";
 
 export default function LoginForm() {
-  const [mode, setMode] = useState<"login" | "register">(() => {
-    if (
-      typeof window !== "undefined" &&
-      new URLSearchParams(window.location.search).get("mode") === "register"
-    ) {
-      return "register";
-    }
-    return "login";
-  });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -46,11 +34,7 @@ export default function LoginForm() {
     setBusy(true);
     try {
       await applyPersistence();
-      if (mode === "login") {
-        await signInWithEmailAndPassword(auth, email, password);
-      } else {
-        await createUserWithEmailAndPassword(auth, email, password);
-      }
+      await signInWithEmailAndPassword(auth, email, password);
     } catch (err) {
       setError(mesaj(err));
     } finally {
@@ -58,22 +42,9 @@ export default function LoginForm() {
     }
   };
 
-  const google = async () => {
-    if (!auth) return;
-    setError(null);
-    try {
-      await applyPersistence();
-      await signInWithPopup(auth, new GoogleAuthProvider());
-    } catch (err) {
-      setError(mesaj(err));
-    }
-  };
-
   return (
     <div className="mx-auto mt-16 w-full max-w-sm rounded-2xl bg-white p-8 shadow-lg">
-      <h1 className="text-center text-2xl font-bold text-zinc-900">
-        {mode === "login" ? "Giriş Yap" : "Hesap Oluştur"}
-      </h1>
+      <h1 className="text-center text-2xl font-bold text-zinc-900">Giriş Yap</h1>
       <p className="mt-1 text-center text-sm text-zinc-500">
         Dijital kartını yönetmek için
       </p>
@@ -92,7 +63,7 @@ export default function LoginForm() {
             type={showPassword ? "text" : "password"}
             required
             minLength={6}
-            placeholder="Şifre (en az 6 karakter)"
+            placeholder="Şifre"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full rounded-lg border border-zinc-300 px-4 py-3 pr-12 outline-none focus:border-violet-500"
@@ -123,29 +94,12 @@ export default function LoginForm() {
           disabled={busy}
           className="w-full rounded-lg bg-violet-700 py-3 font-semibold text-white transition hover:bg-violet-800 disabled:opacity-60"
         >
-          {busy ? "Lütfen bekleyin..." : mode === "login" ? "Giriş Yap" : "Kayıt Ol"}
+          {busy ? "Lütfen bekleyin..." : "Giriş Yap"}
         </button>
       </form>
 
-      <div className="my-4 flex items-center gap-3 text-xs text-zinc-400">
-        <span className="h-px flex-1 bg-zinc-200" /> veya <span className="h-px flex-1 bg-zinc-200" />
-      </div>
-
-      <button
-        onClick={google}
-        className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-300 py-3 font-medium text-zinc-700 transition hover:bg-zinc-50"
-      >
-        <FaGoogle className="text-red-500" /> Google ile devam et
-      </button>
-
       <p className="mt-6 text-center text-sm text-zinc-500">
-        {mode === "login" ? "Hesabın yok mu?" : "Zaten hesabın var mı?"}{" "}
-        <button
-          onClick={() => setMode(mode === "login" ? "register" : "login")}
-          className="font-semibold text-violet-700"
-        >
-          {mode === "login" ? "Kayıt ol" : "Giriş yap"}
-        </button>
+        Hesabın yok mu? Yöneticiyle iletişime geç.
       </p>
     </div>
   );
@@ -157,10 +111,8 @@ function mesaj(err: unknown): string {
     "auth/invalid-credential": "E-posta veya şifre hatalı.",
     "auth/user-not-found": "Bu e-posta ile kayıt yok.",
     "auth/wrong-password": "Şifre hatalı.",
-    "auth/email-already-in-use": "Bu e-posta zaten kayıtlı.",
-    "auth/weak-password": "Şifre çok zayıf (en az 6 karakter).",
     "auth/invalid-email": "Geçersiz e-posta adresi.",
-    "auth/popup-closed-by-user": "Google penceresi kapatıldı.",
+    "auth/too-many-requests": "Çok fazla deneme. Bir süre sonra tekrar deneyin.",
   };
   return map[code] || "Bir hata oluştu. Tekrar deneyin.";
 }

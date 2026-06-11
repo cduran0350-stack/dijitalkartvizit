@@ -13,15 +13,9 @@ export default function Home() {
           <nav className="flex items-center gap-2">
             <Link
               href="/dashboard"
-              className="rounded-lg px-4 py-2 text-sm font-semibold text-violet-700 transition hover:bg-violet-50"
-            >
-              Giriş Yap
-            </Link>
-            <Link
-              href="/dashboard?mode=register"
               className="rounded-lg bg-violet-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-800"
             >
-              Kayıt Ol
+              Giriş Yap
             </Link>
           </nav>
         </div>
